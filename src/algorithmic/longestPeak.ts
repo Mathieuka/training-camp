@@ -1,93 +1,42 @@
-enum PointStatus {
-  IsStartOfProcess = "IsStartOfProcess",
-  IsProcessing = "IsProcessing",
-  IsAPeak = "isAPeak",
-  IsNotAPeak = "isNotAPeak",
-}
-
-const getPointStatus = ({
-  prevValue,
-  currValue,
-  nextValue,
-}: {
-  prevValue: number;
-  currValue: number;
-  nextValue: number;
-}): PointStatus => {
-  const isCurrValueSmallerThanPrevAndNext =
-    currValue < prevValue && currValue < nextValue;
-  const isCurrValueEqualToPrevAndSmallerThanNext =
-    currValue === prevValue && currValue < nextValue;
-  const isCurrValueGreaterThanPrevAndNext =
-    currValue > prevValue && currValue > nextValue;
-  const isCurrValueEqualToPrevAndGreaterThanNext =
-    currValue === prevValue && currValue > nextValue;
-  const isCurrValueSmallerThanPrevAndEqualToNext =
-    currValue < prevValue && currValue === nextValue;
-
-  if (
-    isCurrValueSmallerThanPrevAndNext ||
-    isCurrValueEqualToPrevAndSmallerThanNext
-  ) {
-    return PointStatus.IsStartOfProcess;
-  }
-
-  if (isCurrValueGreaterThanPrevAndNext) {
-    return PointStatus.IsAPeak;
-  }
-
-  if (
-    isCurrValueEqualToPrevAndGreaterThanNext ||
-    isCurrValueSmallerThanPrevAndEqualToNext
-  ) {
-    return PointStatus.IsNotAPeak;
-  }
-
-  return PointStatus.IsProcessing;
-};
-
 const updateLongestPeak = (longestPeak: number, accumulator: number) =>
   Math.max(longestPeak, accumulator);
 
-export const longestPeak = (arrayOfIntegers: number[]): number => {
-  let longestPeak = 0;
-  let isPeak = false;
-  let accumulator = 0;
+export const longestPeak = (arr: number[]): number => {
+  // iterate on numbers with while loop until index equal array length
+  // check if is a peak
+  // iterate on left side and count
+  // iterate on right side and count
+  // update index
 
-  for (let i = 0; i < arrayOfIntegers.length; i++) {
-    const currentPointStatus = getPointStatus({
-      prevValue: arrayOfIntegers[i - 1],
-      currValue: arrayOfIntegers[i],
-      nextValue: arrayOfIntegers[i + 1],
-    });
+  let i = 0;
+  let iCount = 0;
+  const isAPeak = ({
+    prev,
+    curr,
+    next,
+  }: {
+    prev: number;
+    curr: number;
+    next: number;
+  }) => curr > prev && curr > next;
+  let counter = 0;
+  while (i < arr.length) {
+    i++;
+    if (isAPeak({ prev: arr[i - 1], curr: arr[i], next: arr[i + 1] })) {
+      counter++;
 
-    if (isPeak && currentPointStatus === PointStatus.IsNotAPeak) {
-      accumulator++;
-      longestPeak = updateLongestPeak(longestPeak, accumulator);
-      isPeak = false;
-    }
-
-    if (currentPointStatus === PointStatus.IsStartOfProcess) {
-      if (isPeak) {
-        accumulator++;
-        longestPeak = updateLongestPeak(longestPeak, accumulator);
+      if (arr[i] > arr[i - 1]) {
+        counter++;
       }
-      accumulator = 1;
-    }
 
-    if (currentPointStatus === PointStatus.IsProcessing) {
-      accumulator++;
-    }
+      if (arr[i] > arr[i + 1]) {
+        counter++;
+      }
 
-    if (currentPointStatus === PointStatus.IsAPeak) {
-      accumulator++;
-      isPeak = true;
-    }
-
-    if (isPeak) {
-      longestPeak = updateLongestPeak(longestPeak, accumulator);
+      // while (arr[i] > arr[i - 1]) {
+      //
+      // }
     }
   }
-
-  return longestPeak;
+  return counter;
 };
