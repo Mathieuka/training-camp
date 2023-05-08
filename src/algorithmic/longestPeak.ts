@@ -1,76 +1,91 @@
-enum peakStatus {
-  hypotetical = "hypotetical",
-  true = "true",
-  false = "false",
-  process = "process",
-  startProcess = "start process",
+enum PointStatus {
+  IsStartOfProcess = "IsStartOfProcess",
+  IsProcessing = "IsProcessing",
+  IsAPeak = "isAPeak",
+  IsNotAPeak = "isNotAPeak",
 }
 
-const validatePeak = (values: { prev: number; curr: number; next: number }) => {
-  const { prev, curr, next } = values;
+const getPointStatus = ({
+  prevValue,
+  currValue,
+  nextValue,
+}: {
+  prevValue: number;
+  currValue: number;
+  nextValue: number;
+}): PointStatus => {
+  const isCurrValueSmallerThanPrevAndNext =
+    currValue < prevValue && currValue < nextValue;
+  const isCurrValueEqualToPrevAndSmallerThanNext =
+    currValue === prevValue && currValue < nextValue;
+  const isCurrValueGreaterThanPrevAndNext =
+    currValue > prevValue && currValue > nextValue;
+  const isCurrValueEqualToPrevAndGreaterThanNext =
+    currValue === prevValue && currValue > nextValue;
+  const isCurrValueSmallerThanPrevAndEqualToNext =
+    currValue < prevValue && currValue === nextValue;
 
-  if (prev === undefined) {
-    return peakStatus.startProcess;
+  if (
+    isCurrValueSmallerThanPrevAndNext ||
+    isCurrValueEqualToPrevAndSmallerThanNext
+  ) {
+    return PointStatus.IsStartOfProcess;
   }
 
-  if (curr > prev && curr > next) {
-    return peakStatus.true;
+  if (isCurrValueGreaterThanPrevAndNext) {
+    return PointStatus.IsAPeak;
   }
 
-  if ((curr > prev && curr === next) || (curr < prev && curr === next)) {
-    return peakStatus.false;
+  if (
+    isCurrValueEqualToPrevAndGreaterThanNext ||
+    isCurrValueSmallerThanPrevAndEqualToNext
+  ) {
+    return PointStatus.IsNotAPeak;
   }
 
-  if ((curr < prev && curr < next) || (curr === prev && curr < next)) {
-    return peakStatus.startProcess;
-  }
-
-  return peakStatus.process;
+  return PointStatus.IsProcessing;
 };
 
-export const longestPeak = (arr: number[]) => {
+const updateLongestPeak = (longestPeak: number, accumulator: number) =>
+  Math.max(longestPeak, accumulator);
+
+export const longestPeak = (arrayOfIntegers: number[]): number => {
   let longestPeak = 0;
-  let inStartedProcessing = false;
-  let peakValid = false;
+  let isPeak = false;
   let accumulator = 0;
 
-  for (let i = 0; i < arr.length; i++) {
-    const status = validatePeak({
-      prev: arr[i - 1],
-      curr: arr[i],
-      next: arr[i + 1],
+  for (let i = 0; i < arrayOfIntegers.length; i++) {
+    const currentPointStatus = getPointStatus({
+      prevValue: arrayOfIntegers[i - 1],
+      currValue: arrayOfIntegers[i],
+      nextValue: arrayOfIntegers[i + 1],
     });
 
-    if (status === peakStatus.startProcess || status === peakStatus.false) {
-      if (peakValid) {
+    if (isPeak && currentPointStatus === PointStatus.IsNotAPeak) {
+      accumulator++;
+      longestPeak = updateLongestPeak(longestPeak, accumulator);
+      isPeak = false;
+    }
+
+    if (currentPointStatus === PointStatus.IsStartOfProcess) {
+      if (isPeak) {
         accumulator++;
-        if (accumulator > longestPeak) {
-          longestPeak = accumulator;
-        }
+        longestPeak = updateLongestPeak(longestPeak, accumulator);
       }
-
-      if (status === peakStatus.startProcess) {
-        accumulator = 1;
-      }
-
-      if (status === peakStatus.false) {
-        peakValid = false;
-      }
+      accumulator = 1;
     }
 
-    if (status === peakStatus.process) {
+    if (currentPointStatus === PointStatus.IsProcessing) {
       accumulator++;
     }
 
-    if (status === peakStatus.true) {
-      peakValid = true;
+    if (currentPointStatus === PointStatus.IsAPeak) {
       accumulator++;
+      isPeak = true;
     }
 
-    if (peakValid) {
-      if (accumulator > longestPeak) {
-        longestPeak = accumulator;
-      }
+    if (isPeak) {
+      longestPeak = updateLongestPeak(longestPeak, accumulator);
     }
   }
 
